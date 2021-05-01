@@ -44,6 +44,7 @@ module.exports = (env, options) => ({
     ],
     devServer: {
         host: '0.0.0.0',
+        port: 9000,
         onListening: function(server) {
             const port = server.listeningApp.address().port
             global.port = port
