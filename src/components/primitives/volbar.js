@@ -9,6 +9,19 @@ export default class VolbarExt {
         this.draw(data)
     }
 
+    roundRect(ctx, x, y, w, h, r) {
+        if (w < 2 * r) r = w / 2
+        if (h < 2 * r) r = h / 2
+        ctx.beginPath()
+        ctx.moveTo(x + r, y)
+        ctx.arcTo(x + w, y, x + w, y + h, r)
+        ctx.arcTo(x + w, y + h, x, y + h, 0)
+        ctx.arcTo(x, y + h, x, y, 0)
+        ctx.arcTo(x, y, x + w, y, r)
+        ctx.closePath()
+        return ctx
+    }
+
     draw(data) {
         let y0 = this.$p.layout.height
         let w = data.x2 - data.x1
@@ -18,12 +31,16 @@ export default class VolbarExt {
             this.style.colorVolUp :
             this.style.colorVolDw
 
-        this.ctx.fillRect(
+        let sett = this.self.sett
+
+        this.roundRect(
+            this.ctx,
             Math.floor(data.x1),
             Math.floor(y0 - h - 0.5),
-            Math.floor(w),
-            Math.floor(h + 1)
-        )
+            Math.floor(w - (sett.volMarginX || 0)),
+            Math.floor(h + 1),
+            sett.volRadius || 0,
+        ).fill()
 
     }
 

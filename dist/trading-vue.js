@@ -1,5 +1,5 @@
 /*!
- * TradingVue.JS - v1.0.2 - Sat May 01 2021
+ * TradingVue.JS - v1.0.4 - Sat May 08 2021
  *     https://github.com/tvjsx/trading-vue-js
  *     Copyright (c) 2019 C451 Code's All Right;
  *     Licensed under the MIT license
@@ -5032,6 +5032,20 @@ var CandleExt = /*#__PURE__*/function () {
   }
 
   createClass_createClass(CandleExt, [{
+    key: "roundRect",
+    value: function roundRect(ctx, x, y, w, h, r) {
+      if (w < 2 * r) r = w / 2;
+      if (h < 2 * r) r = h / 2;
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+      return ctx;
+    }
+  }, {
     key: "draw",
     value: function draw(data) {
       var green = data.raw[4] >= data.raw[1];
@@ -5049,10 +5063,20 @@ var CandleExt = /*#__PURE__*/function () {
       this.ctx.stroke();
 
       if (data.w > 1.5) {
-        this.ctx.fillStyle = body_color; // TODO: Move common calculations to layout.js
+        this.ctx.fillStyle = body_color;
 
-        var s = green ? 1 : -1;
-        this.ctx.fillRect(Math.floor(data.x - hw - 1), data.c, Math.floor(hw * 2 + 1), s * Math.max(h, max_h));
+        if (this.self.sett.shadow) {
+          var sett = this.self.sett;
+          this.ctx.shadowColor = sett.shadowColor;
+          this.ctx.shadowBlur = sett.shadowBlur;
+          this.ctx.shadowOffsetX = sett.shadowOffsetX;
+          this.ctx.shadowOffsetY = sett.shadowOffsetY;
+        } // TODO: Move common calculations to layout.js
+
+
+        var candleH = Math.max(h, max_h);
+        var yPos = green ? data.c : data.c - candleH;
+        this.roundRect(this.ctx, Math.floor(data.x - hw - 1), yPos, Math.floor(hw * 2 + 1), candleH, this.self.sett.roundRadius || 0).fill();
       } else {
         this.ctx.strokeStyle = body_color;
         this.ctx.beginPath();
@@ -5083,13 +5107,28 @@ var VolbarExt = /*#__PURE__*/function () {
   }
 
   createClass_createClass(VolbarExt, [{
+    key: "roundRect",
+    value: function roundRect(ctx, x, y, w, h, r) {
+      if (w < 2 * r) r = w / 2;
+      if (h < 2 * r) r = h / 2;
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, 0);
+      ctx.arcTo(x, y + h, x, y, 0);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+      return ctx;
+    }
+  }, {
     key: "draw",
     value: function draw(data) {
       var y0 = this.$p.layout.height;
       var w = data.x2 - data.x1;
       var h = Math.floor(data.h);
       this.ctx.fillStyle = data.green ? this.style.colorVolUp : this.style.colorVolDw;
-      this.ctx.fillRect(Math.floor(data.x1), Math.floor(y0 - h - 0.5), Math.floor(w), Math.floor(h + 1));
+      var sett = this.self.sett;
+      this.roundRect(this.ctx, Math.floor(data.x1), Math.floor(y0 - h - 0.5), Math.floor(w - (sett.volMarginX || 0)), Math.floor(h + 1), sett.volRadius || 0).fill();
     }
   }]);
 
@@ -10572,6 +10611,19 @@ function TradingVuevue_type_script_lang_js_arrayLikeToArray(arr, len) { if (len 
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 
 
@@ -10733,6 +10785,12 @@ function TradingVuevue_type_script_lang_js_arrayLikeToArray(arr, len) { if (len 
       "default": 0
     }
   },
+  data: function data() {
+    return {
+      reset: 0,
+      tip: null
+    };
+  },
   computed: {
     // Copy a subset of TradingVue props
     chart_props: function chart_props() {
@@ -10802,12 +10860,6 @@ function TradingVuevue_type_script_lang_js_arrayLikeToArray(arr, len) { if (len 
       return this.skin_proto && this.skin_proto.font ? this.skin_proto.font : this.font;
     }
   },
-  data: function data() {
-    return {
-      reset: 0,
-      tip: null
-    };
-  },
   beforeDestroy: function beforeDestroy() {
     this.custom_event({
       event: 'before-destroy'
@@ -10842,7 +10894,6 @@ function TradingVuevue_type_script_lang_js_arrayLikeToArray(arr, len) { if (len 
     "goto": function goto(t) {
       // TODO: limit goto & setRange (out of data error)
       if (this.chart_props.ib) {
-        console.log('go to !')
         // TODO: Fix goto bug when ib actived with realtime update
         return; // const ti_map = this.$refs.chart.ti_map
         // t = ti_map.gt2i(t, this.$refs.chart.ohlcv)
@@ -10953,6 +11004,7 @@ function TradingVuevue_type_script_lang_js_arrayLikeToArray(arr, len) { if (len 
       }
     },
     mousedown: function mousedown() {
+      console.log("yesss");
       this.$refs.chart.activated = true;
     },
     mouseleave: function mouseleave() {
@@ -13697,7 +13749,7 @@ if (typeof window !== 'undefined' && window.Vue) {
 var ___CSS_LOADER_API_IMPORT___ = __webpack_require__(645);
 exports = ___CSS_LOADER_API_IMPORT___(false);
 // Module
-exports.push([module.id, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\r\n/* Anit-boostrap tactix */\n.trading-vue *, ::after, ::before {\r\n    box-sizing: content-box;\n}\n.trading-vue img {\r\n    vertical-align: initial;\n}\r\n", ""]);
+exports.push([module.id, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\r\n/* Anit-boostrap tactix */\n.trading-vue *, ::after, ::before {\r\n    box-sizing: content-box;\n}\n.trading-vue img {\r\n    vertical-align: initial;\n}\r\n", ""]);
 // Exports
 module.exports = exports;
 
