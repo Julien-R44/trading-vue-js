@@ -33,13 +33,15 @@ export default class VolbarExt {
 
         let sett = this.self.sett
 
+        let volMarginX = (sett.volMarginX || 2) / w
+        w -= w <= 1 ? 0 : volMarginX
         this.roundRect(
             this.ctx,
             Math.floor(data.x1),
             Math.floor(y0 - h - 0.5),
-            Math.floor(w - (sett.volMarginX || 0)),
+            Math.floor(w),
             Math.floor(h + 1),
-            sett.volRadius || 0,
+            sett.volRadius || 4,
         ).fill()
 
     }
